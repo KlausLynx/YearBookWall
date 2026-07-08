@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #945F0F;
+  --bg-Color: #EDEADE;
+  --font-heading: "Playfair Display", serif;
+  --text-accent: 16px;
+  --color-accent-error: red;
+  --color-accent-white: #EDEADE;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --brand-Color: #945F0F
+  --bg-Color: #EDEADE
+  --text-accent: 16px;
+  --color-accent-white: #EDEADE;
+  --color-accent-error: red
+}
+
+body {
+  background-color: var(--bg-Color);
+  font-family: "Playfair Display", serif;
+  font-size: 24px;
+  font-weight: 300;
+}
