@@ -1,9 +1,15 @@
-import { Wallpage } from "./pages/wallpage"
-const App = () => {
+import { Routes, Route, BrowserRouter } from "react-router-dom";
+import {Wallpage} from "./pages/wallpage";
+import AdminPage from "./pages/AdminPage";
 
-  return  (
-    <Wallpage />
-  )
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Wallpage />} />
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
+    </BrowserRouter>
+    
+  );
 }
-
-export default App

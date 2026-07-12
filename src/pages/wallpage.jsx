@@ -3,12 +3,12 @@ import {RegNoModal} from '../components/regNo'
 import UploadForm from '../components/UploadForm'
 import {Wall} from '../components/wall'
 import {useEffect, useState, useCallback} from "react"
-import { listEntries } from '../lib/api'
+import { listEntries, getCourseByRegNo } from '../lib/api'
 
 export const Wallpage = () => {
     const [view, setView] = useState({
         checkRegNo: false,
-        wall: false,
+        wall: true,
         form: false,
     })
     const [entries, setEntries] = useState([]);
@@ -32,27 +32,37 @@ export const Wallpage = () => {
     
     /*  eslint-disable */
     useEffect(() => {
-        loadEntries();
+        loadEntries().then(data => console.log(data));
     }, [loadEntries]);
     /* eslint-enable */
-    const handleApproved = (roster, existingEntry) => {
-        setActiveRoster(roster);
-        setActiveEntry(existingEntry);
-        setActiveRegNo(roster.reg_no);
-        setView(prev => ({...prev, form: true, checkRegNo: false}));
-    };
+const handleApproved = async (roster, existingEntry) => {
+    setActiveRoster(roster);
+    setActiveEntry(existingEntry);
+    setActiveRegNo(roster.reg_no);
+
+    console.log(existingEntry);  
+    console.log(roster.reg_no);   
+      const course = await getCourseByRegNo(roster.reg_no); // call it here
+    console.log(course);
+    setView(prev => ({...prev, form: true, checkRegNo: false}));
+};
 
     const handleSaved = () => {
-        setView(prev => ({...prev, checkRegNo: false, form: false}) );
+        setView(prev => ({...prev, form: false, wall: true}) );
         loadEntries();
     };
+
+    const checkUserDetails = useCallback(async() => {
+        setView(prev => ({ ...prev, wall: false, form: true  }))
+    }, [])
+
     return (
         <>
-            <Hero handlePermission={() => setView(prev => ({ ...prev, checkRegNo: true }))} />
+            <Hero checkRegNo={view} activeReg={activeRegNo} checkWallUser={checkUserDetails} handlePermission={() => setView(prev => ({ ...prev, checkRegNo: true, wall: false }))} />
 
-            <Wall entries={entries} loading={loading} loadError={loadError} onRetry={loadEntries} />
+            {view.wall === true && <Wall entries={entries} roster={activeRoster} loading={loading} loadError={loadError} onRetry={loadEntries} />}
 
-            {view.checkRegNo === true && <RegNoModal onApproved={handleApproved}/>}
+            {view.checkRegNo === true && <RegNoModal onApproved={handleApproved} onClose={() => setView(prev => ({ ...prev, checkRegNo: false }))}/>}
 
             {view.form === true && activeRoster && (
                 <UploadForm
