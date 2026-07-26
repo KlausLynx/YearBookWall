@@ -307,7 +307,7 @@ export const ShowCard = ({ entry, roster, onToggle, flipped }) => {
 
                     <div className="flex flex-row items-stretch gap-4 w-full">
                         <div className="w-1/2 flex flex-col items-center">
-                            <div className="border-2 border-brand p-2 sm:p-3 rounded-2xl w-fit min-h-[480px] h-full flex flex-col justify-center items-center">
+                            <div className="border-2 border-brand p-2 sm:p-3 rounded-2xl w-fit flex flex-col justify-center items-center">
                                 <ProfileDetails
                                     entry={entry}
                                     photoUrl={entry.final_photo_url}
