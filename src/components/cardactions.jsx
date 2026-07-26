@@ -41,7 +41,7 @@ export default function CardActions({ nodeRef, filename, caption }) {
         <button type="button" className="text-brand" onClick={handleShare} disabled={!!busy}>
             {busy === "share" ? <Loader2 size={14} className="yb-spin" /> : <Share2 size={14} />} Share
         </button>
-        {error && <div className="yb-field-error">{error}</div>}
+        {error && <div className="text-accent-error text-accent">{error}</div>}
         </div>
     );
 }
