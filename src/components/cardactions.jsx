@@ -15,7 +15,7 @@ function describeError(err) {
     return String(err);
 }
 
-export default function CardActions({ nodeRef, filename, caption }) {
+export default function CardActions({ nodeRef, filename, caption, notReady }) {
     const [busy, setBusy] = useState("");
     const [error, setError] = useState("");
 
@@ -47,13 +47,15 @@ export default function CardActions({ nodeRef, filename, caption }) {
         }
     };
 
+    const disabled = !!busy || !!notReady;
+
     return (
         <div className="flex justify-between items-center">
-        <button type="button" className="text-brand" onClick={handleDownload} disabled={!!busy}>
-            {busy === "download" ? <Loader2 size={14} className="yb-spin" /> : <Download size={14} />} Save
+        <button type="button" className="text-brand" onClick={handleDownload} disabled={disabled}>
+            {busy === "download" || notReady ? <Loader2 size={14} className="yb-spin" /> : <Download size={14} />} Save
         </button>
-        <button type="button" className="text-brand" onClick={handleShare} disabled={!!busy}>
-            {busy === "share" ? <Loader2 size={14} className="yb-spin" /> : <Share2 size={14} />} Share
+        <button type="button" className="text-brand" onClick={handleShare} disabled={disabled}>
+            {busy === "share" || notReady ? <Loader2 size={14} className="yb-spin" /> : <Share2 size={14} />} Share
         </button>
         {error && <div className="text-accent-error text-accent">{error}</div>}
         </div>

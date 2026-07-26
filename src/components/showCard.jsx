@@ -393,6 +393,7 @@ export const ShowCard = ({ entry, roster, onToggle, flipped }) => {
                 nodeRef={exportRef}
                 filename={`${(entry.name || entry.reg_no || "card").replace(/\s+/g, "-")}-card.png`}
                 caption={`${entry.name || ""} · Class of ${CLASS_YEAR} · The Legacy Continues`}
+                notReady={!!entry?.final_photo_url && !exportPhotoUrl}
             />
         </div>
     )

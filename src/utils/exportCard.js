@@ -59,10 +59,6 @@ async function waitForFonts() {
 // node with the correct font before we take the real snapshot.
 async function warmUpRender(node) {
     try {
-        // skipFonts: we already force fonts to be loaded via waitForFonts()
-        // above, so html-to-image doesn't need to re-fetch and inline them
-        // itself — that internal fetch was a source of unhelpful failures.
-        //
         // NOTE: deliberately no cacheBust here. cacheBust appends a random
         // query string to every <img> src it finds so it can force a fresh
         // fetch — but blob: URLs (which the photo now uses, see showCard.jsx)
@@ -70,8 +66,8 @@ async function warmUpRender(node) {
         // Doing so turns them into a URL the browser never registered,
         // which 404s as ERR_FILE_NOT_FOUND. We don't need cache-busting
         // anyway now: the photo is a fresh blob URL every time, and the
-        // font is already forced to load above.
-        await toPng(node, { pixelRatio: 1, skipFonts: true });
+        // font is already forced to load above via waitForFonts().
+        await toPng(node, { pixelRatio: 1 });
     } catch {
         // ignore — this pass is just a warm-up, errors here aren't fatal
     }
@@ -81,7 +77,7 @@ export async function downloadCardAsImage(node, filename) {
     if (!node) throw new Error("Nothing to export yet.");
     await Promise.all([waitForImages(node), waitForFonts()]);
     await warmUpRender(node);
-    const dataUrl = await toPng(node, { pixelRatio: 2, backgroundColor: "#ffffff", skipFonts: true });
+    const dataUrl = await toPng(node, { pixelRatio: 2, backgroundColor: "#ffffff" });
     const link = document.createElement("a");
     link.download = filename;
     link.href = dataUrl;
@@ -94,7 +90,7 @@ export async function shareCardImage(node, filename, caption) {
     if (!node) throw new Error("Nothing to export yet.");
     await Promise.all([waitForImages(node), waitForFonts()]);
     await warmUpRender(node);
-    const dataUrl = await toPng(node, { pixelRatio: 2, skipFonts: true });
+    const dataUrl = await toPng(node, { pixelRatio: 2 });
     const res = await fetch(dataUrl);
     const blob = await res.blob();
     const file = new File([blob], filename, { type: "image/png" });
