@@ -173,7 +173,15 @@ export const ShowCard = ({ entry, roster, onToggle, flipped }) => {
         (async () => {
             if (!entry?.final_photo_url) return;
             try {
-                const res = await fetch(entry.final_photo_url, { mode: "cors" });
+                // Cache-bust with a unique query param and force a real network
+                // round-trip (cache: "reload"). Without this, some browsers —
+                // Safari in particular — can silently reuse the plain, non-CORS
+                // copy of this same image already cached by the visible
+                // front-face <img> (which has no crossOrigin attribute). That
+                // reused copy looks loaded fine but isn't CORS-cleared, which
+                // taints the export canvas and makes the whole export throw.
+                const cacheBustedUrl = `${entry.final_photo_url}${entry.final_photo_url.includes("?") ? "&" : "?"}export=1`;
+                const res = await fetch(cacheBustedUrl, { mode: "cors", cache: "reload" });
                 const blob = await res.blob();
                 if (cancelled) return;
                 objectUrl = URL.createObjectURL(blob);

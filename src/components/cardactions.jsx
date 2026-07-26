@@ -14,7 +14,8 @@ export default function CardActions({ nodeRef, filename, caption }) {
         await downloadCardAsImage(nodeRef.current, filename);
         } catch (err) {
         Sentry.captureException(err);
-        setError("Couldn't save the image.");
+        console.error("Download failed:", err);
+        setError(`Couldn't save the image. (${err?.name || "Error"}: ${err?.message || "unknown"})`);
         } finally {
         setBusy("");
         }
@@ -27,7 +28,8 @@ export default function CardActions({ nodeRef, filename, caption }) {
         await shareCardImage(nodeRef.current, filename, caption);
         } catch (err) {
         Sentry.captureException(err);
-        setError("Couldn't share the image.");
+        console.error("Share failed:", err);
+        setError(`Couldn't share the image. (${err?.name || "Error"}: ${err?.message || "unknown"})`);
         } finally {
         setBusy("");
         }
