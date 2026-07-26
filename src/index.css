@@ -4,9 +4,15 @@
   --color-brand: #945F0F;
   --bg-Color: #EDEADE;
   --font-heading: "Playfair Display", serif;
+  --font-heading-fac: "Fraunces", serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-tag: "IBM Plex Mono";
   --text-accent: 16px;
+  --text-facSide: 20px;
   --color-accent-error: red;
   --color-accent-white: #EDEADE;
+  --color-accent-facSide: #945F0F;
+  --color-accent-facSideBtn: #4F2205;
 }
 
 * {

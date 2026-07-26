@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import * as Sentry from "@sentry/react";
 import { checkRegNo, getEntryByRegNo } from "../lib/api";
 import { ShieldAlert, Loader2, X } from "lucide-react";
 import { SubmitButton, Button } from "../utils/button";
 
 export const RegNoModal = ({onApproved, onClose}) => {
     const [regNo, setRegNo] = useState("");
-    const [status, setStatus] = useState("idle"); // idle | checking | denied | error
+    const [status, setStatus] = useState("idle");
     const [error, setError] = useState(null);
 
     const inputRef = useRef(null)
@@ -44,7 +45,8 @@ useEffect(() => {
                 }
             const existing = await getEntryByRegNo(trimmed);
             onApproved(roster, existing);
-        } catch {
+        } catch (err) {
+            Sentry.captureException(err);
             setStatus("error");
             setError("Could not check that reg number right now. Please try again.");
         }
@@ -66,14 +68,15 @@ useEffect(() => {
             </div>
             <div className="py-5">
                 <form onSubmit={handleChange}>
-                    <input ref={inputRef} className="ps-3" type="text" value={regNo} placeholder="e.g. CCU/2022/0142" onChange={(e)=> setRegNo(e.target.value)} autoFocus/>
+                    <input ref={inputRef} className="ps-3 placeholder:text-gray-500" type="text" value={regNo} placeholder="e.g. CCU/2022/0142" onChange={(e)=> setRegNo(e.target.value)} autoFocus/>
                     <p className="text-accent-error text-accent mt-3">{error}</p>
                     <div className="mt-8">
                         <SubmitButton disabled={status === "denied"}>
                             {status === "checking" ? (
-                                <>
-                                    <Loader2 size={16} className="animate-spin" /> Checking
-                                </>
+                                <div className="flex justify-between items-center gap-2">
+                                    <Loader2 size={16} className="animate-spin " /> 
+                                    <span>Checking</span>
+                                </div>
                             ) : (
                                 "Continue"
                             )}

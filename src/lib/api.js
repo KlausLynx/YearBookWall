@@ -21,6 +21,15 @@ export async function listRoster() {
   return data;
 }
 
+export async function listDepartment() {
+  const { data, error} = await supabase
+  .from("entries")
+  .select("*")
+  .order("department", { ascending: true })
+  if(error) throw error;
+  return data
+}
+
 export async function addRosterEntry({ regNo, faculty, department, course }) {
   const { data, error } = await supabase
     .from("roster")
@@ -32,7 +41,9 @@ export async function addRosterEntry({ regNo, faculty, department, course }) {
 }
 
 export async function deleteRosterEntry(regNo) {
-  const { error } = await supabase.from("roster").delete().eq("reg_no", regNo);
+  const { error } = await supabase.from("roster")
+  .delete()
+  .eq("reg_no", regNo);
   if (error) throw error;
 }
 
@@ -83,10 +94,9 @@ export async function uploadPhoto(file, regNo, label) {
 export async function getCourseByRegNo(regNo) {
   const { data, error } = await supabase
     .from("roster")
-    .select("course")     // only pull the course column
-    .eq("reg_no", regNo)  // WHERE reg_no = regNo
-    .single();            // expect exactly one row back
-
+    .select("course")     
+    .eq("reg_no", regNo)  
+    .single();
   if (error) throw error;
   return data.course;
 }

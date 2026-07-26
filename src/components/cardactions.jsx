@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as Sentry from "@sentry/react";
 import { Download, Share2, Loader2 } from "lucide-react";
 import { downloadCardAsImage, shareCardImage } from "../utils/exportCard";
 
@@ -11,7 +12,8 @@ export default function CardActions({ nodeRef, filename, caption }) {
         setError("");
         try {
         await downloadCardAsImage(nodeRef.current, filename);
-        } catch {
+        } catch (err) {
+        Sentry.captureException(err);
         setError("Couldn't save the image.");
         } finally {
         setBusy("");
@@ -23,7 +25,8 @@ export default function CardActions({ nodeRef, filename, caption }) {
         setError("");
         try {
         await shareCardImage(nodeRef.current, filename, caption);
-        } catch {
+        } catch (err) {
+        Sentry.captureException(err);
         setError("Couldn't share the image.");
         } finally {
         setBusy("");

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import * as Sentry from "@sentry/react";
 import { Loader2, Trash2, Plus } from "lucide-react";
 import { listRoster, addRosterEntry, deleteRosterEntry } from "../lib/api";
 
@@ -17,7 +18,8 @@ export default function AdminPanel({ onBack }) {
     setError("");
     try {
       setRoster(await listRoster());
-    } catch {
+    } catch (err) {
+      Sentry.captureException(err);
       setError("Could not load the roster.");
     } finally {
       setLoading(false);
@@ -42,7 +44,8 @@ export default function AdminPanel({ onBack }) {
       setDepartment("");
       setCourse("")
       await load();
-    } catch {
+    } catch (err) {
+      Sentry.captureException(err);
       setError("Could not add that reg number (it may already exist).");
     } finally {
       setSaving(false);
@@ -53,7 +56,8 @@ export default function AdminPanel({ onBack }) {
     try {
       await deleteRosterEntry(rn);
       await load();
-    } catch {
+    } catch (err) {
+      Sentry.captureException(err);
       setError("Could not remove that entry.");
     }
   };

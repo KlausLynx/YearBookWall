@@ -6,8 +6,8 @@ export const Wall =({entries, roster, loading, loadError, onRetry}) => {
     const toggleFlip = (regNo) => setFlippedMap((m) => ({ ...m, [regNo]: !m[regNo] }));
     if (loading) {
         return (
-        <div className="flex ">
-            <Loader2 size={22} className="animate-spin" />
+        <div className="flex items-center gap-2 justify-center mt-5">
+            <Loader2 size={22} className="animate-spin text-brand" />
             Loading the wall…
         </div>
         );
@@ -15,10 +15,10 @@ export const Wall =({entries, roster, loading, loadError, onRetry}) => {
 
     if(loadError) {
         return (
-            <>
+            <div className="flex items-center gap-2 justify-center mt-5">
                 <p>{loadError}</p>
-                <button onClick={onRetry}>Try  Again</button>
-            </>
+                <button className='text-accent-white text-accent bg-accent-error flex items-center justify-center rounded-2xl p-2 cursor-pointer transition hover:scale-105' onClick={onRetry}>Try  Again</button>
+            </div>
             
         )
     }
@@ -35,7 +35,7 @@ export const Wall =({entries, roster, loading, loadError, onRetry}) => {
     return(
         <div>
             { entries.map((entry) => (
-                <ShowCard key={entry.regNo} roster={roster} entry={entry} flipped={!!flippedMap[entry.reg_no]}
+                <ShowCard key={entry.reg_no} roster={roster} entry={entry} flipped={!!flippedMap[entry.reg_no]}
                 onToggle={() => toggleFlip(entry.reg_no)} />
             ))}
         </div>
