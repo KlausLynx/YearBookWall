@@ -117,10 +117,15 @@ const DetailFieldsList = ({ detailFields, entry, deptKey, leftLabelColor, partin
                     <div className={isCompact ? "flex flex-col items-center text-center mt-4 sm:mt-6 md:mt-8" : "flex flex-col items-center text-center mt-6"}>
                         <p
                             className={isCompact ? "text-brand text-sm sm:text-lg md:text-2xl mb-1 sm:mb-2 md:mb-3" : `${leftLabelColor} text-lg mb-2`}
-                            style={{ fontFamily: "'Dancing Script', cursive" }}
+                            style={{ fontFamily: "'Dancing Script', cursive", whiteSpace: "nowrap" }}
                         >
                             Parting Words
                         </p>
+                        {/* Hard spacer, independent of line-height/font metrics, so a
+                            fallback font rendering "Parting Words" taller than expected
+                            (e.g. during export, before/if the cursive webfont is ready)
+                            can never push the quote below into overlapping it. */}
+                        <div aria-hidden="true" style={{ height: isCompact ? 6 : 10 }} />
                         <p className={isCompact
                             ? `italic text-[10px] sm:text-sm md:text-lg font-semibold max-w-[160px] sm:max-w-[240px] md:max-w-xs break-words leading-relaxed ${deptKey === "educationfoundation" ? "text-amber-100" : ""}`
                             : `italic text-sm font-semibold max-w-[260px] break-words leading-relaxed ${deptKey === "educationfoundation" ? "text-amber-100" : ""}`}>
@@ -147,6 +152,44 @@ export const ShowCard = ({ entry, roster, onToggle, flipped }) => {
     const flipCardRef = useRef(null);
     // Used only for image export — a hidden, non-flipping snapshot of front + datafields
     const exportRef = useRef(null);
+
+    // The export snapshot's photo previously pointed straight at
+    // entry.final_photo_url and relied on the browser finishing that
+    // network fetch + decode by the time the user clicked download/share.
+    // On a fresh page load (especially on slower mobile connections) that
+    // fetch sometimes hadn't finished yet, so the first export came out
+    // with the photo missing — it only worked on a second try because the
+    // browser had it cached by then. Preloading it into a local blob URL as
+    // soon as the card mounts removes that race: by the time the user can
+    // even click download, the image data is already sitting in memory.
+    const [exportPhotoUrl, setExportPhotoUrl] = useState(null);
+
+    useEffect(() => {
+        let objectUrl;
+        let cancelled = false;
+
+        setExportPhotoUrl(null);
+
+        (async () => {
+            if (!entry?.final_photo_url) return;
+            try {
+                const res = await fetch(entry.final_photo_url, { mode: "cors" });
+                const blob = await res.blob();
+                if (cancelled) return;
+                objectUrl = URL.createObjectURL(blob);
+                setExportPhotoUrl(objectUrl);
+            } catch {
+                // Preloading failed (e.g. CORS/network issue) — fall back to
+                // the original remote URL so export still has a chance to work.
+                if (!cancelled) setExportPhotoUrl(entry.final_photo_url);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
+    }, [entry?.final_photo_url]);
 
     useEffect(() => {
         if (flipCardRef.current) {
@@ -310,7 +353,7 @@ export const ShowCard = ({ entry, roster, onToggle, flipped }) => {
                             <div className="border-2 border-brand p-2 sm:p-3 rounded-2xl w-fit flex flex-col justify-center items-center">
                                 <ProfileDetails
                                     entry={entry}
-                                    photoUrl={entry.final_photo_url}
+                                    photoUrl={exportPhotoUrl || entry.final_photo_url}
                                     photoClassName="w-56 h-56 object-cover rounded-full"
                                     crossOrigin="anonymous"
                                     leftLabelColor={leftLabelColor}
