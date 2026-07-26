@@ -2,7 +2,7 @@ import { Suspense, lazy } from "react";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import { Wallpage } from "./pages/wallpage";
 import ErrorBoundary from "./components/ErrorBoundary";
-const AdminPage = lazy(() => import("./pages/AdminPage"));
+const AdminPage = lazy(() => import("./pages/adminPage"));
 const FacultyPage = lazy(() =>
   import("./pages/facultyPage").then((m) => ({ default: m.FacultyPage }))
 );
