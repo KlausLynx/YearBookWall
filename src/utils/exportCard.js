@@ -53,6 +53,19 @@ async function waitForFonts() {
     }
 }
 
+// Mobile Safari has a known bug where img.decode() resolves before the
+// decoded pixels are actually available to be painted/captured — it's
+// "telling us it's ready" a step too early. That's why the very first
+// export after a page load came out missing the front photo, while every
+// export after that (once Safari had quietly caught up) was fine.
+// Waiting two animation frames forces the browser through at least one real
+// paint cycle before we hand the node to html-to-image, closing that gap.
+function waitForNextPaint() {
+    return new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+}
+
 // html-to-image has a known quirk where a font that only just finished
 // loading isn't picked up on the very first render pass after it becomes
 // ready — a throwaway capture "warms up" the browser's rendering of the
@@ -76,6 +89,7 @@ async function warmUpRender(node) {
 export async function downloadCardAsImage(node, filename) {
     if (!node) throw new Error("Nothing to export yet.");
     await Promise.all([waitForImages(node), waitForFonts()]);
+    await waitForNextPaint();
     await warmUpRender(node);
     const dataUrl = await toPng(node, { pixelRatio: 2, backgroundColor: "#ffffff" });
     const link = document.createElement("a");
@@ -89,6 +103,7 @@ export async function downloadCardAsImage(node, filename) {
 export async function shareCardImage(node, filename, caption) {
     if (!node) throw new Error("Nothing to export yet.");
     await Promise.all([waitForImages(node), waitForFonts()]);
+    await waitForNextPaint();
     await warmUpRender(node);
     const dataUrl = await toPng(node, { pixelRatio: 2 });
     const res = await fetch(dataUrl);
