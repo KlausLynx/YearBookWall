@@ -3,14 +3,29 @@ import { toPng } from "html-to-image";
 async function waitForImages(node) {
     const imgs = Array.from(node.querySelectorAll("img"));
     await Promise.all(
-        imgs.map((img) =>
-            img.complete
-                ? Promise.resolve()
-                : new Promise((resolve) => {
-                      img.onload = resolve;
-                      img.onerror = resolve; // don't hang forever on a broken image
-                  })
-        )
+        imgs.map(async (img) => {
+            if (!img.src) return;
+            // img.decode() resolves only once the image is fully decoded and
+            // ready to be painted — this is stronger than checking
+            // img.complete, which can already be true (e.g. because the
+            // same URL was cached from the visible, non-export copy of the
+            // photo) even though the browser hasn't finished decoding pixel
+            // data for *this* <img> element yet. That gap is what caused the
+            // first download after a page load to come out with the photo
+            // missing: html-to-image tried to paint it before it was ready.
+            try {
+                await img.decode();
+            } catch {
+                // decode() unsupported, or the image failed — fall back to
+                // waiting for the load/error event instead of hanging.
+                if (!img.complete) {
+                    await new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                    });
+                }
+            }
+        })
     );
 }
 
@@ -18,15 +33,23 @@ async function waitForImages(node) {
 // can still be loading when we snapshot the node. If html-to-image captures
 // before the font is ready, it falls back to a system font with different
 // metrics for that element, which throws off the layout below it (e.g. the
-// quote overlapping the label). document.fonts.ready resolves once all
-// fonts requested so far have finished loading/failing.
+// quote overlapping the label).
 async function waitForFonts() {
-    if (document.fonts && document.fonts.ready) {
-        try {
-            await document.fonts.ready;
-        } catch {
-            // ignore — proceed with whatever fonts are available
+    try {
+        if (document.fonts && document.fonts.load) {
+            // Explicitly request the exact font used for "Parting Words".
+            // This guarantees it's loaded even if the browser hasn't
+            // gotten around to painting it yet for some reason — we don't
+            // want to depend on timing/visibility of the live card.
+            await document.fonts.load('400 24px "Dancing Script"');
+            await document.fonts.load('700 24px "Dancing Script"');
         }
+        if (document.fonts && document.fonts.ready) {
+            // Also wait for every other in-flight font on the page.
+            await document.fonts.ready;
+        }
+    } catch {
+        // ignore — proceed with whatever fonts are available
     }
 }
 
@@ -44,8 +67,7 @@ async function warmUpRender(node) {
 
 export async function downloadCardAsImage(node, filename) {
     if (!node) throw new Error("Nothing to export yet.");
-    await waitForImages(node);
-    await waitForFonts();
+    await Promise.all([waitForImages(node), waitForFonts()]);
     await warmUpRender(node);
     const dataUrl = await toPng(node, { pixelRatio: 2, cacheBust: true, backgroundColor: "#ffffff" });
     const link = document.createElement("a");
@@ -58,8 +80,7 @@ export async function downloadCardAsImage(node, filename) {
 // fell back to a plain download + clipboard copy (typical on desktop).
 export async function shareCardImage(node, filename, caption) {
     if (!node) throw new Error("Nothing to export yet.");
-    await waitForImages(node);
-    await waitForFonts();
+    await Promise.all([waitForImages(node), waitForFonts()]);
     await warmUpRender(node);
     const dataUrl = await toPng(node, { pixelRatio: 2, cacheBust: true });
     const res = await fetch(dataUrl);

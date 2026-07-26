@@ -325,6 +325,7 @@ export const ShowCard = ({ entry, roster, onToggle, flipped }) => {
                                 entry={entry}
                                 deptKey={deptKey}
                                 leftLabelColor={leftLabelColor}
+                                partingWordsColor={partingWordsColor}
                                 sizeVariant="export"
                             />
                         </div>
