@@ -173,20 +173,25 @@ export const ShowCard = ({ entry, roster, onToggle, flipped }) => {
         (async () => {
             if (!entry?.final_photo_url) return;
             try {
-                // Cache-bust with a unique query param and force a real network
-                // round-trip (cache: "reload"). Without this, some browsers —
-                // Safari in particular — can silently reuse the plain, non-CORS
-                // copy of this same image already cached by the visible
-                // front-face <img> (which has no crossOrigin attribute). That
-                // reused copy looks loaded fine but isn't CORS-cleared, which
-                // taints the export canvas and makes the whole export throw.
-                const cacheBustedUrl = `${entry.final_photo_url}${entry.final_photo_url.includes("?") ? "&" : "?"}export=1`;
-                const res = await fetch(cacheBustedUrl, { mode: "cors", cache: "reload" });
+                // Force a real network round-trip without modifying the URL —
+                // appending a cache-busting query param can break a signed
+                // Supabase Storage URL's token validation, so we rely on
+                // cache: "reload" alone to bypass any stale cached copy.
+                const res = await fetch(entry.final_photo_url, { mode: "cors", cache: "reload" });
+                if (!res.ok) {
+                    // fetch() only rejects on network-level failure, not on
+                    // HTTP error statuses — without this check, a 403/400
+                    // from Supabase (e.g. an expired signed URL) would get
+                    // silently wrapped into a blob URL as if it were valid
+                    // image data, which then fails to decode during export.
+                    throw new Error(`Photo fetch returned ${res.status}`);
+                }
                 const blob = await res.blob();
                 if (cancelled) return;
                 objectUrl = URL.createObjectURL(blob);
                 setExportPhotoUrl(objectUrl);
-            } catch {
+            } catch (err) {
+                console.error("Export photo preload failed, falling back to remote URL:", err);
                 // Preloading failed (e.g. CORS/network issue) — fall back to
                 // the original remote URL so export still has a chance to work.
                 if (!cancelled) setExportPhotoUrl(entry.final_photo_url);

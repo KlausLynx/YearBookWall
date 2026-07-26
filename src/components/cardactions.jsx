@@ -3,6 +3,18 @@ import * as Sentry from "@sentry/react";
 import { Download, Share2, Loader2 } from "lucide-react";
 import { downloadCardAsImage, shareCardImage } from "../utils/exportCard";
 
+function describeError(err) {
+    if (err instanceof Error) return `${err.name}: ${err.message}`;
+    if (typeof err === "string") return err;
+    try {
+        const json = JSON.stringify(err);
+        if (json && json !== "{}") return json;
+    } catch {
+        // fall through
+    }
+    return String(err);
+}
+
 export default function CardActions({ nodeRef, filename, caption }) {
     const [busy, setBusy] = useState("");
     const [error, setError] = useState("");
@@ -15,7 +27,7 @@ export default function CardActions({ nodeRef, filename, caption }) {
         } catch (err) {
         Sentry.captureException(err);
         console.error("Download failed:", err);
-        setError(`Couldn't save the image. (${err?.name || "Error"}: ${err?.message || "unknown"})`);
+        setError(`Couldn't save the image. (${describeError(err)})`);
         } finally {
         setBusy("");
         }
@@ -29,7 +41,7 @@ export default function CardActions({ nodeRef, filename, caption }) {
         } catch (err) {
         Sentry.captureException(err);
         console.error("Share failed:", err);
-        setError(`Couldn't share the image. (${err?.name || "Error"}: ${err?.message || "unknown"})`);
+        setError(`Couldn't share the image. (${describeError(err)})`);
         } finally {
         setBusy("");
         }
