@@ -66,32 +66,26 @@ function waitForNextPaint() {
     });
 }
 
-// html-to-image has a known quirk where a font that only just finished
-// loading isn't picked up on the very first render pass after it becomes
-// ready — a throwaway capture "warms up" the browser's rendering of the
-// node with the correct font before we take the real snapshot.
-async function warmUpRender(node) {
-    try {
-        // NOTE: deliberately no cacheBust here. cacheBust appends a random
-        // query string to every <img> src it finds so it can force a fresh
-        // fetch — but blob: URLs (which the photo now uses, see showCard.jsx)
-        // are exact-match tokens that can't have anything appended to them.
-        // Doing so turns them into a URL the browser never registered,
-        // which 404s as ERR_FILE_NOT_FOUND. We don't need cache-busting
-        // anyway now: the photo is a fresh blob URL every time, and the
-        // font is already forced to load above via waitForFonts().
-        await toPng(node, { pixelRatio: 1 });
-    } catch {
+// html-to-image has a known quirk (worse on iOS Safari) where the very
+// first capture of a node can come out with an <img> blank/missing, even
+// after decode()/paint have resolved — some part of the browser's render
+// pipeline for that element isn't "warm" yet. A second capture always
+// succeeds. The warm-up pass MUST use the exact same options (pixelRatio,
+// backgroundColor, etc.) as the real capture — a mismatched pixelRatio
+// produces a differently-sized canvas, which Safari treats as a separate
+// operation, so it doesn't actually warm up the real one.
+async function captureNode(node, options) {
+    await toPng(node, options).catch(() => {
         // ignore — this pass is just a warm-up, errors here aren't fatal
-    }
+    });
+    return toPng(node, options);
 }
 
 export async function downloadCardAsImage(node, filename) {
     if (!node) throw new Error("Nothing to export yet.");
     await Promise.all([waitForImages(node), waitForFonts()]);
     await waitForNextPaint();
-    await warmUpRender(node);
-    const dataUrl = await toPng(node, { pixelRatio: 2, backgroundColor: "#ffffff" });
+    const dataUrl = await captureNode(node, { pixelRatio: 2, backgroundColor: "#ffffff" });
     const link = document.createElement("a");
     link.download = filename;
     link.href = dataUrl;
@@ -104,8 +98,7 @@ export async function shareCardImage(node, filename, caption) {
     if (!node) throw new Error("Nothing to export yet.");
     await Promise.all([waitForImages(node), waitForFonts()]);
     await waitForNextPaint();
-    await warmUpRender(node);
-    const dataUrl = await toPng(node, { pixelRatio: 2 });
+    const dataUrl = await captureNode(node, { pixelRatio: 2 });
     const res = await fetch(dataUrl);
     const blob = await res.blob();
     const file = new File([blob], filename, { type: "image/png" });
