@@ -35,11 +35,11 @@ export default function Cards({src, intitials, facultyStudents}) {
                 <div className="border border-dashed border-brand mx-2 opacity-20"></div>
             </CardDivider>
             <CardBottom>
-                <div>
+                <div className="min-w-0">
                     <span className="py-1 px-2 rounded-2xl text-accent bg-brand inline-block origin-left -rotate-6 text-xs sm:text-sm">
                         {formatDpt(facultyStudents.course)}
                     </span>
-                    <div className="text-accent text-xs sm:text-sm space-y-1 mt-2 min-w-0">
+                    <div className="text-accent text-xs sm:text-sm space-y-1 mt-2">
                         <p className="break-words">Phone No: <span>{phone ?? 'N/A'}</span></p>
                         <p className="break-words">Email: <span>{facultyStudents.email ?? 'N/A'}  </span></p>
                         <p className="break-words">Career Path: <span>{facultyStudents.career_path ?? 'N/A'}</span></p>

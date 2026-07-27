@@ -13,7 +13,10 @@ export const MainPage = ({ activeDepartment, students, slideSideBar, searchTerm,
                 faculties={faculties}
                 onFacultyChange={onFacultyChange}
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 mt-4 sm:mt-6">
+            <div
+                className="grid gap-4 sm:gap-5 md:gap-6 mt-4 sm:mt-6"
+                style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}
+            >
                 {students.map((prsn, index) => (
                     <Cards key={index} facultyStudents={prsn} />
                 ))}
