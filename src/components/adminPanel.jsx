@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import * as Sentry from "@sentry/react";
-import { Loader2, Trash2, Plus } from "lucide-react";
-import { listRoster, addRosterEntry, deleteRosterEntry } from "../lib/api";
+import { Loader2, Trash2, Plus, Pencil} from "lucide-react";
+import { listRoster, addRosterEntry, editRosterEntry, deleteRosterEntry } from "../lib/api";
 
 export default function AdminPanel({ onBack }) {
   const [roster, setRoster] = useState([]);
@@ -12,6 +12,7 @@ export default function AdminPanel({ onBack }) {
   const [course, setCourse] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [editingRegNo, setEditingRegNo] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -62,6 +63,39 @@ export default function AdminPanel({ onBack }) {
     }
   };
 
+  const handleUpdate = (r) => {
+    setError('');
+    setEditingRegNo(r.reg_no)
+    setRegNo(r.reg_no);
+    setFaculty(r.faculty);
+    setDepartment(r.department);
+    setCourse(r.course);
+    console.log(r)
+  }
+
+    const handleEdit = async () => {
+    setError("");
+    if (!regNo.trim()) {
+      setError("Reg number is required.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await editRosterEntry({ originalRegNo: editingRegNo, reg_no: regNo.toLowerCase().trim(), faculty: faculty.toLowerCase().trim(), department: department.toLowerCase().trim(), course: course.toLowerCase().trim() });
+      setRegNo("");
+      setFaculty("");
+      setDepartment("");
+      setCourse("")
+      setEditingRegNo(null);
+      await load();
+    } catch (err) {
+      Sentry.captureException(err);
+      setError("Could not edit that reg number (it may already exist).");
+    } finally {
+      setSaving(false);
+    }
+  };
+
     return (
         <div className="yb-modal-scrim" role="dialog" aria-modal="true" aria-label="Admin panel">
         <div className="yb-modal yb-modal-wide">
@@ -82,9 +116,14 @@ export default function AdminPanel({ onBack }) {
                 value={course}
                 onChange={(e) => setCourse(e.target.value)}
             />
+            {editingRegNo ? <button type="button" className="text-accent" onClick={handleEdit} disabled={saving}>
+                  {saving ? <Loader2 size={16} className="yb-spin" /> : <Plus size={16} />} Edit Changes
+              </button>
+              :
             <button type="button" className="yb-btn yb-btn-primary" onClick={handleAdd} disabled={saving}>
                 {saving ? <Loader2 size={16} className="yb-spin" /> : <Plus size={16} />} Add
             </button>
+            }
             </div>
             {error && <div className="yb-form-error">{error}</div>}
 
@@ -122,6 +161,11 @@ export default function AdminPanel({ onBack }) {
                         >
                         <Trash2 size={14} />
                         </button>
+                    </td>
+                    <td>
+                      <button className="ms-4" onClick={()=> handleUpdate(r)} aria-label={`Edit ${r.reg_no}`}> 
+                        <Pencil size={24}/> 
+                      </button>
                     </td>
                     </tr>
                 ))}

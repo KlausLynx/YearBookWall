@@ -78,6 +78,20 @@ export async function saveEntry(entry) {
   return data;
 }
 
+export async function editRosterEntry({originalRegNo, reg_no, faculty, department, course}) {
+  const {data, error} = await supabase
+  .from("roster")
+  .update({reg_no, faculty, department, course})
+  .select()
+  .eq('reg_no', originalRegNo)
+  .maybeSingle();
+
+  console.log("update result:", data, error);
+  
+  if (error) throw error;
+  return data;
+}
+
 // ---- Photos ----
 
 export async function uploadPhoto(file, regNo, label) {
