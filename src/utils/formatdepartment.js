@@ -4,5 +4,6 @@ export const formatDpt = (dpt) => (
         .replace(/and/gi, ' and ')
         .replace(/social/gi, ' Social')
         .replace(/foundation/gi, ' Foundation')
+        .replace(/administration/gi, ' Administration')
         .trim()
 )

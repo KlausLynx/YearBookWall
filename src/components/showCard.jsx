@@ -144,7 +144,7 @@ export const ShowCard = ({ entry, roster, onToggle, flipped }) => {
     // eslint-disable-next-line
     const [frontHeight, setFrontHeight] = useState(null);
 
-    const FIELDS = getFields(roster?.course)
+    const FIELDS = getFields(entry?.course ?? roster?.course)
     const detailFields = FIELDS.filter((f) => !f.fromRoster && f.key !== "name" && f.key !== "birthday" && f.key !==
     "relationship_status" && f.key !== "phone" && f.key !== "email");
 
@@ -219,6 +219,7 @@ export const ShowCard = ({ entry, roster, onToggle, flipped }) => {
     const deptKey = normalise(entry.department);
     console.log(deptKey)
     const bg = departmentBgColors[deptKey];
+    console.log(bg)
     const leftLabelColor = deptKey === "educationfoundation" ? "text-black" : deptKey ==="sciences" ? "text-white" : "text-brand";
     const partingWordsColor = deptKey === "educationfoundation" ? "text-white" : deptKey ==="sciences" ? "text-white" : "text-brand";
     const leftTextValueColor = deptKey === "sciences" ? "text-black" : "text-white";

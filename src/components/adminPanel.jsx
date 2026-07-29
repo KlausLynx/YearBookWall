@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import * as Sentry from "@sentry/react";
-import { Loader2, Trash2, Plus, Pencil} from "lucide-react";
+import { Loader2, Trash2, Plus, Pencil } from "lucide-react";
 import { listRoster, addRosterEntry, editRosterEntry, deleteRosterEntry } from "../lib/api";
 
 export default function AdminPanel({ onBack }) {
@@ -97,81 +97,132 @@ export default function AdminPanel({ onBack }) {
   };
 
     return (
-        <div className="yb-modal-scrim" role="dialog" aria-modal="true" aria-label="Admin panel">
-        <div className="yb-modal yb-modal-wide">
-            <div className="yb-modal-head">
-            <h2 className="yb-modal-title">Admin — approved reg numbers</h2>
-            <button type="button" className="yb-btn yb-btn-ghost" onClick={onBack}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Admin panel"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-8"
+        >
+        <div className="flex h-full w-full max-w-3xl flex-col rounded-2xl border border-neutral-800 bg-neutral-900 shadow-2xl">
+
+            <div className="flex items-center justify-between border-b border-neutral-800 px-6 py-4">
+            <h2 className="text-base font-semibold text-neutral-100">Admin — approved reg numbers</h2>
+            <button
+              type="button"
+              onClick={onBack}
+              className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm font-medium text-neutral-300 transition hover:bg-neutral-800"
+            >
                 Back to wall
             </button>
             </div>
 
-            <div className="yb-admin-form">
-            <input className="yb-input" placeholder="Reg number" value={regNo} onChange={(e) => setRegNo(e.target.value)} />
-            <input className="yb-input" placeholder="Faculty" value={faculty} onChange={(e) => setFaculty(e.target.value)} />
-            <input className="yb-input" placeholder="Department" value={department} onChange={(e) => setDepartment(e.target.value)}/>
+            <div className="overflow-y-auto px-6 py-5">
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
             <input
-                className="yb-input"
+              className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-500/40"
+              placeholder="Reg number"
+              value={regNo}
+              onChange={(e) => setRegNo(e.target.value)}
+            />
+            <input
+              className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-500/40"
+              placeholder="Faculty"
+              value={faculty}
+              onChange={(e) => setFaculty(e.target.value)}
+            />
+            <input
+              className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-500/40"
+              placeholder="Department"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+            />
+            <input
+                className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-500/40"
                 placeholder="Course"
                 value={course}
                 onChange={(e) => setCourse(e.target.value)}
             />
-            {editingRegNo ? <button type="button" className="text-accent" onClick={handleEdit} disabled={saving}>
-                  {saving ? <Loader2 size={16} className="yb-spin" /> : <Plus size={16} />} Edit Changes
-              </button>
-              :
-            <button type="button" className="yb-btn yb-btn-primary" onClick={handleAdd} disabled={saving}>
-                {saving ? <Loader2 size={16} className="yb-spin" /> : <Plus size={16} />} Add
-            </button>
-            }
             </div>
-            {error && <div className="yb-form-error">{error}</div>}
+
+            <div className="mt-3 flex justify-end">
+            {editingRegNo ? (
+              <button
+                type="button"
+                onClick={handleEdit}
+                disabled={saving}
+                className="flex items-center gap-1.5 rounded-lg bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-white disabled:opacity-60"
+              >
+                  {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} Edit Changes
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAdd}
+                disabled={saving}
+                className="flex items-center gap-1.5 rounded-lg bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-white disabled:opacity-60"
+              >
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} Add
+              </button>
+            )}
+            </div>
+
+            {error && <div className="mt-3 text-sm text-red-400">{error}</div>}
 
             {loading ? (
-            <div className="yb-loading">
-                <Loader2 size={20} className="yb-spin" /> Loading roster…
+            <div className="mt-8 flex items-center justify-center gap-2 text-sm text-neutral-400">
+                <Loader2 size={20} className="animate-spin" /> Loading roster…
             </div>
             ) : roster.length === 0 ? (
-            <div className="yb-empty" style={{ margin: "2rem 0" }}>
+            <div className="mt-8 text-center text-sm text-neutral-500">
                 No reg numbers added yet.
             </div>
             ) : (
-            <table className="yb-admin-table">
-                <thead>
+            <div className="mt-5 overflow-hidden rounded-xl border border-neutral-800">
+            <table className="w-full text-left text-sm">
+                <thead className="bg-neutral-800/60 text-xs uppercase tracking-wide text-neutral-400">
                 <tr>
-                    <th>Reg No</th>
-                    <th>Faculty</th>
-                    <th>Department</th>
-                    <th>Course</th>
+                    <th className="px-4 py-2.5 font-medium">Reg No</th>
+                    <th className="px-4 py-2.5 font-medium">Faculty</th>
+                    <th className="px-4 py-2.5 font-medium">Department</th>
+                    <th className="px-4 py-2.5 font-medium">Course</th>
+                    <th className="px-4 py-2.5"></th>
+                    <th className="px-4 py-2.5"></th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-neutral-800">
                 {roster.map((r) => (
-                    <tr key={r.reg_no}>
-                    <td>{r.reg_no}</td>
-                    <td>{r.faculty}</td>
-                    <td>{r.department}</td>
-                    <td>{r.course}</td>
-                    <td>
+                    <tr key={r.reg_no} className="text-neutral-200">
+                    <td className="px-4 py-2.5">{r.reg_no}</td>
+                    <td className="px-4 py-2.5">{r.faculty}</td>
+                    <td className="px-4 py-2.5">{r.department}</td>
+                    <td className="px-4 py-2.5">{r.course}</td>
+                    <td className="px-4 py-2.5 text-right">
                         <button
                         type="button"
-                        className="yb-iconbtn"
                         onClick={() => handleDelete(r.reg_no)}
                         aria-label={`Remove ${r.reg_no}`}
+                        className="rounded-md p-1.5 text-neutral-400 transition hover:bg-red-500/10 hover:text-red-400"
                         >
                         <Trash2 size={14} />
                         </button>
                     </td>
-                    <td>
-                      <button className="ms-4" onClick={()=> handleUpdate(r)} aria-label={`Edit ${r.reg_no}`}> 
-                        <Pencil size={24}/> 
+                    <td className="px-4 py-2.5 text-right">
+                      <button
+                        onClick={() => handleUpdate(r)}
+                        aria-label={`Edit ${r.reg_no}`}
+                        className="rounded-md p-1.5 text-neutral-400 transition hover:bg-neutral-700 hover:text-neutral-100"
+                      >
+                        <Pencil size={16} />
                       </button>
                     </td>
                     </tr>
                 ))}
                 </tbody>
             </table>
+            </div>
             )}
+            </div>
         </div>
         </div>
     );

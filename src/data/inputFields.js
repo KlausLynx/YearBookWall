@@ -34,3 +34,4 @@ export const getFields = (course) => [
     {   key: "next_step", label: "After school, what's next", placeholder: "Masters, then NYSC", icon: GraduationCap },
     {   key: "advice", label: "Word of advice to younger levels", placeholder: "Attend classes o", icon: Lightbulb },
 ];
+
